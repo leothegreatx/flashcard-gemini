@@ -1,52 +1,46 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, HttpUrl
+from langchain_community.document_loaders import YoutubeLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from fastapi.middleware.cors import CORSMiddleware
-
-from services.genai import (
-    YoutubeProcessor,
-    GeminiProcessor
-)
+from servicess.generativeai import (YoutubeProcessor, GeminiProcessor)
 
 class VideoAnalysisRequest(BaseModel):
     youtube_link: HttpUrl
-    # advanced settings
 
 app = FastAPI()
 
-# Configure CORS
 app.add_middleware(
+    
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    allow_origins = ["*"],
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"])
 
-genai_processor = GeminiProcessor(
-        model_name = "gemini-pro",
-        project = "ai-dev-cqc-q1-2024"
-    )
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Video Analysis API!"}
+
+genai_processor = GeminiProcessor(model_name ='gemini-pro', project ='dynamo-422010')
 
 @app.post("/analyze_video")
 def analyze_video(request: VideoAnalysisRequest):
+    
     # Doing the analysis
     processor = YoutubeProcessor(genai_processor = genai_processor)
-    result = processor.retrieve_youtube_documents(str(request.youtube_link), verbose=False)
+    result = processor.retrieve_youtube_documents(str(request.youtube_link), verbose =True)
     
-    #summary = genai_processor.generate_document_summary(result, verbose=True)
+    #summary = genai_processor.generate_document_summary(result, verbose =True)
+    #return {"summary": summary}
     
-    # Find key concepts
-    raw_concepts = processor.find_key_concepts(result, verbose=True)
+    # find key concepts
+    key_concepts = processor.find_key_concepts(result, group_size=15,verbose=True)
     
-    # Deconstruct
-    unique_concepts = {}
-    for concept_dict in raw_concepts:
-        for key, value in concept_dict.items():
-            unique_concepts[key] = value
+    return {"key_concepts": key_concepts}
     
-    # Reconstruct
-    key_concepts_list = [{key: value} for key, value in concept_dict.items()]
+    gemini_processor = GeminiProcessor(model_name ='gemini-pro', project ='dynamo-422010')
+
+    count_tokens = gemini_processor.count_tokens(result)
     
-    return {
-        "key_concepts": key_concepts_list
-    }
+    return {"count_tokens": count_tokens}

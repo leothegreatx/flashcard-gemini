@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Flashcard({ term, definition, onDiscard }) {
+function Flashcard({term, definition, onDiscard }) {
     return (
         <div className='flashcard'>
             <h3>{term}</h3>
