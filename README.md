@@ -11,7 +11,7 @@ To get started with the Gemini Flashcard project, follow these steps:
 **1. Clone the repository:**
 
 ```python
-git clone <repository_url>
+git clone git@github.com:leothegreatx/flashcard-gemini.git
 ```
 **2. navigate to the repository directory in your terminal. Then, execute the following command to swiftly install the required libraries and dependencies:**
 
